@@ -1,0 +1,63 @@
+import smtplib 
+from email.message import EmailMessage 
+import datetime
+import cv2
+
+import os 
+
+def whatsapp_msg_sent():
+    import pywhatkit
+    pywhatkit.sendwhatmsg_instantly(
+        phone_no="+91XXXXXXXXXX", 
+        message="Hello Harshal, A human face has been detected! Was it you?"
+)
+    
+    
+def email_alert(subject, body, to):
+    msg=EmailMessage()
+    msg.set_content(body)
+    msg["subject"] = subject 
+    msg["to"] = to
+    user="XXXXXXXXXXXXXXXXX@gmail.com"
+    msg["from"]=user
+    password="XXXXXXXXXX"
+    server=smtplib.SMTP("smtp.gmail.com",587)
+    server.starttls()
+    server.login(user,password)
+    server.send_message(msg)
+    print("Email sent successfully")
+    server.quit()
+
+    
+# For live face detection 
+detect=False
+now=""
+
+model = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
+cap = cv2.VideoCapture(0)
+while True:
+    ret,photo=cap.read()
+    faces=model.detectMultiScale(photo)
+    if len(faces) == 0:
+        pass
+    else:
+        x1=faces[0][0]
+        y1=faces[0][1]
+        x2=x1+faces[0][2]
+        y2=y1+faces[0][3]
+        model_pic = cv2.rectangle(photo, (x1,y1),(x2,y2),[0,255,0],3)
+        cv2.imshow("Face Detection Screen", model_pic)
+        if cv2.waitKey(10) == 13:
+            cap.release()
+            break
+        detect=True
+        now = datetime.datetime.now()
+        now=str(now)
+cv2.destroyAllWindows()
+
+# SENDS EMAIL & WHATSAPP MESSAGE
+if detect==True:
+    msg="❗ *CAUTION* ❗ \n*A human face has been detected! \nWas it you?* 🚫\n\nTimestamp: {}".format(now)
+    email_alert("Alert",msg,"XXXXXXXXXXXXXXXXXX@gmail.com")
+    whatsapp_msg_sent()
+Email sent successfully
